@@ -31,13 +31,18 @@ with st.container():
                         legend=alt.Legend(title="", labelFontSize=12, orient="right"))
     base = alt.Chart(source).add_selection(selector).interactive()
 
+    zoom_possible = """##### ✨ Zoom et filtre garçon/fille possible, avec infobulles si vous êtes sur ordinateur. ✨  
+    """
+
 ## INTRO + SEXE
 with st.container():
     col1, col2 = st.columns(2)
 
     with col1:
         st.write("~~")
-        st.write("Vous avez été {} personnes à participer.". format(len(df)))
+        st.markdown("""Vous avez été **{}** personnes à participer.
+        Si vous n'avez pas encore joué, il est toujours temps en [cliquant ici](https://form.jotform.com/bubbl3wrap/mini-mimi).        
+        """. format(len(df)))
         st.markdown("**Merci ! 🤗**")
         st.write("Vous trouverez sur cette page un petit récap de vos pronostics...")
         st.write("""&nbsp;  
@@ -64,7 +69,8 @@ with st.container():
     st.markdown("&nbsp;")
     st.markdown("## 📆 &nbsp; Date de naissance")
     st.markdown("&nbsp;")
-    st.write("✨ Zoom et filtre garçon/fille possible.")
+    st.markdown(zoom_possible)
+    st.markdown("&nbsp;")
     st.markdown("🪧 Terme : **12 février 2022** (en gris clair).")
 
     ticks = base.mark_tick(thickness=2, size=80, opacity=0.5).encode(
@@ -96,7 +102,8 @@ with st.container():
 with st.container():
     st.markdown('## 📏 &nbsp; Mensurations...')
     st.markdown("&nbsp;")
-    st.write("✨ Zoom et filtre garçon/fille possible.")
+    st.markdown(zoom_possible)
+    st.markdown("&nbsp;")
 
     taille_scale = alt.Scale(domain=(40, 60))
     poids_scale = alt.Scale(domain=(2000, 5000))
@@ -104,8 +111,8 @@ with st.container():
     area_args = {'opacity': .3, 'interpolate': 'step'}
 
     points = base.mark_circle().encode(
-        alt.X('taille', scale=taille_scale),
-        alt.Y('poids', scale=poids_scale),
+        alt.X('taille', scale=taille_scale, title='Taille (cm)'),
+        alt.Y('poids', scale=poids_scale, title='Poids (g)'),
         color=condition_color,
         tooltip=[
             alt.Tooltip('poids', title="Poids"), 
@@ -180,15 +187,25 @@ with st.container():
 with st.container():
     st.markdown("## ✏️ &nbsp; Et enfin... le prénom !")
     st.markdown("&nbsp;")
-    st.markdown("Plus un prénom est écrit en gros, plus vous avez été nombreux à miser dessus 😉")
 
     dict_masc = dict(df.prenom_masc.value_counts())
     dict_fem = dict(df.prenom_fem.value_counts())
-
     dict_both = {
         k: dict_masc.get(k, 0) + dict_fem.get(k, 0) 
         for k in set(dict_masc) | set(dict_fem)
     }
+
+    max_freq = max(dict_both.values())
+    prenoms_max = [name for name, freq in dict_both.items() if freq == max_freq]
+    nb_freq = len(prenoms_max)
+
+    st.markdown("""Plus un prénom est écrit en gros, plus vous avez été nombreux à miser dessus 😉 
+    &nbsp;  
+    *N.B. : Les prénoms n'ont pas non plus été proposés 50 fois, le maximum étant "seulement" de {} fois pour le{} prénom{} {} !*
+    """.format(max_freq,
+            's' if nb_freq>1 else "",
+            's' if nb_freq>1 else "",           
+    ", ".join(prenoms_max[:-1]) + (" & " if nb_freq>1 else "") + prenoms_max[-1]))
 
     mask = np.array(Image.open("cloud-icon.png"))
     mask[mask == 0] = 255
@@ -212,7 +229,7 @@ with st.container():
 
     st.pyplot(fig)
 
-## Fille et garçon séparé !
+## Fille et garçon séparéS !
 with st.container() :
     col1, col2 = st.columns(2)
 
