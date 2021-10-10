@@ -1,5 +1,23 @@
 import numpy as np
 from wordcloud import get_single_color_func
+import streamlit as st
+
+def portrait_robot(data) :
+
+    sexe_majo = data['sexe'].mode()[0]
+
+    if sexe_majo == "Fille" :
+        prenom_majo = data.loc[data['sexe'] == sexe_majo]['prenom_fem'].mode()[0]
+    else :
+        prenom_majo = data.loc[data['sexe'] == sexe_majo]['prenom_masc'].mode()[0]
+
+    date_de_naissance = data.date.median()
+    taille = data.taille.median()
+    poids = data.poids.median()
+    chevelure = data['longueur_cheveux'].mode()[0]
+    couleur = data['couleur_cheveux'].mode()[0]
+
+    return sexe_majo, date_de_naissance, taille, poids, chevelure, couleur, prenom_majo
 
 def calcul_angles(angles, proportion, acc):
     current_angle = proportion * np.pi
@@ -11,7 +29,7 @@ def calcul_angles(angles, proportion, acc):
 
     return angles, acc
 
-def make_bars_specifics(df, longueur_cheveux, ordre_cheveux, couleurs_cheveux, ordre_couleur) :
+def make_hair_bars(df, longueur_cheveux, ordre_cheveux, couleurs_cheveux, ordre_couleur) :
 
     width = []
     radii = []
