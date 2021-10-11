@@ -20,7 +20,7 @@ st.write("~~")
 st.markdown("Bienvenue sur la page de visualisation de vos pronostics !")
 
 viz_prono = "Visualisation des pronostics"
-robot_baby = "Faire-part de naissance du baby !"
+robot_baby = "Faire-part de naissance du bébé"
 
 df = pd.read_pickle(path_to_df)
 df["date"] = pd.to_datetime(df["date"], dayfirst=True)
@@ -64,13 +64,12 @@ with st.container():
         )
 
         if display == robot_baby :
-            st.markdown("""
-            Vous trouverez sur cette page le futur faire-part du bébé... d'après vos pronostics, bien sûr ! 
-            \n###### Rempli avec les médianes pour la date de naissance, la taille et le poids du bébé, et le choix de la majorité pour la longueur et la couleur des cheveux.
-            \n###### Le prénom est celui qui a été le plus donné pour le sexe majoritaire, par ceux qui ont prédit ce sexe. 
-            \n###### *Par exemple : s'il y a une majorité de "garçon", c'est le prénom masculin le plus donné par ceux qui ont prédit "garçon".*
-
-            """)
+            st.write("Et voici le tant attendu faire-part du bébé !!")
+            st.write("Enfin, d'après vos pronostics, bien sûr...")
+            st.markdown("""<small>Rempli avec les médianes pour la date de naissance, la taille et le poids du bébé, et le choix de la majorité pour la longueur et la couleur des cheveux.</small>
+            \n<small>Le prénom est celui qui a été le plus donné pour le sexe majoritaire, par ceux qui ont prédit ce sexe.</small>
+            \n<small>*Par exemple : s'il y a une majorité de "garçon", c'est le prénom masculin le plus donné par ceux qui ont prédit "garçon".*</small>
+            """, unsafe_allow_html=True)
 
         elif display == viz_prono:
             st.write("""&nbsp;  
@@ -342,5 +341,5 @@ if display == viz_prono :
 
 # FOOTER
 st.write("### &nbsp;")
-st.markdown("**Fait avec 💖 par Hélène.**")
+st.markdown("<small>**Fait avec 💖 par Hélène.**</small>", unsafe_allow_html=True)
 
