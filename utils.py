@@ -1,9 +1,11 @@
 import numpy as np
 from wordcloud import get_single_color_func
-import streamlit as st
 
-def portrait_robot(data) :
+def portrait_robot(data, sexe_oppose) :
     sexe_majo = data['sexe'].mode()[0]
+
+    if sexe_oppose :
+        sexe_majo = "Garçon" if sexe_majo == "Fille" else "Fille"
 
     if sexe_majo == "Fille" :
         prenom_majo = data.loc[data['sexe'] == sexe_majo]['prenom_fem'].mode()[0]

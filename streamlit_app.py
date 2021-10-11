@@ -19,17 +19,32 @@ st.markdown("# ✨ Team Crevette ✨")
 st.write("~~")
 st.markdown("Bienvenue sur la page de visualisation de vos pronostics !")
 
-viz_prono = "Visualisation des pronostics"
+viz_prono = "Pronostics"
 robot_baby = "Faire-part de naissance du bébé"
 
 df = pd.read_pickle(path_to_df)
 df["date"] = pd.to_datetime(df["date"], dayfirst=True)
 
-### VARIABLES ALTAIR & FRIENDS
+
 with st.container():
+
+    ### SIDEBAR
+    st.sidebar.markdown("# Fun place !")
+    st.sidebar.markdown("## Les couleurs")
+    st.sidebar.write("Cliquez sur la couleur à modifier, sélectionnez la nouvelle couleur, puis cliquez à côté pour valider.")
+    color_girl = st.sidebar.color_picker(label='Couleur "Fille"', value='#1FC3AA')
+    color_boy = st.sidebar.color_picker(label='Couleur "Garçon"', value='#ff8c00')
+    st.sidebar.markdown("## Données")
+    display = st.sidebar.radio("Visualisations à afficher", 
+    (viz_prono, robot_baby))
+
+    if display == robot_baby :
+        sexe_oppose = st.sidebar.checkbox("Voir le faire-part du sexe opposé.")
+
+### VARIABLES ALTAIR & FRIENDS
     source = df
     sexes = ['Fille', 'Garçon']
-    colors_sex = ['#1FC3AA', 'darkorange']
+    colors_sex = [color_girl, color_boy]
 
     ordre_cheveux = ['Maxi chevelure !', 'Chevelure classique', 'Juste assez pour ne pas être chauve...', 'Pas de cheveux !']
     ordre_couleur = ['Noirs', 'Bruns', 'Roux', 'Blonds', 'Pas de cheveux... Pas de cheveux !'] 
@@ -51,17 +66,14 @@ with st.container():
     st.markdown("""Vous avez été **{}** personnes à participer.
     Si vous n'avez pas encore joué, il est toujours temps en [cliquant ici](https://form.jotform.com/bubbl3wrap/mini-mimi).        
     """. format(len(df)))
-    st.markdown("**Merci ! 🤗**")
+    st.markdown("Je me suis bien amusée à faire cette page, alors **merci à vous** ! 🤗")
+    st.markdown("<small>Choisissez votre mode d'affichage dans la barre des options, à gauche.</small>", unsafe_allow_html=True)
+    st.markdown("<small>Vous pouvez aussi changer les couleurs (ça ne sert à rien mais c'est rigolo).</small>", unsafe_allow_html=True)
     st.write("~~")
 
     col1, col2 = st.columns(2)
 
     with col1:
-
-        display = st.radio(
-        "Type d'affichage",
-        (viz_prono, robot_baby)
-        )
 
         if display == robot_baby :
             st.write("Et voici le tant attendu faire-part du bébé !!")
@@ -79,11 +91,15 @@ with st.container():
 
             * barême à suivre... 🧮     
             """)
+            st.write("&nbsp;")
 
     ### SEXE // FAIRE PART
     with col2 :
 
         if display == viz_prono :
+
+            st.markdown("## ⚤ &nbsp; Sexe")
+
             def func(pct, allvals):
                 absolute = int(round(pct/100.*np.sum(allvals)))
                 return "{:d}\n({:.1f}%)".format(absolute, pct)
@@ -103,12 +119,15 @@ with st.container():
         else :
             fig, ax = plt.subplots()
 
-            sexe_majo, birthday, taille, poids, chevelure, couleur, prenom_majo = portrait_robot(source)
+            sexe_majo, birthday, taille, poids, chevelure, couleur, prenom_majo = portrait_robot(source, sexe_oppose)
+            
             sex_color = colors_sex[sexes.index(sexe_majo)]
             jour = format_datetime(birthday,"EEEE d MMMM yyyy 'à' H'h'mm ", locale='fr')
             fille = 'e' if sexe_majo == "Fille" else ''
             pronom = "elle" if sexe_majo == "Fille" else 'il'
             winning_color = couleurs_cheveux[ordre_couleur.index(couleur)]
+
+            presque = "(presque) " if sexe_oppose else ""
 
             size = .4
             outer_colors = [winning_color, 'white']
@@ -136,7 +155,10 @@ with st.container():
             plt.text(0, -1.3, f"Né{fille} le {jour}".upper(), ha="center", fontweight="ultralight", fontfamily="serif")
             plt.text(0, -1.5, f"{int(taille)} cm - {int(poids):1,} kg", ha="center", fontfamily="serif")
             plt.text(0, -1.75 , f"En plus, {pronom} a les cheveux {couleur.lower()} ({chevelure.lower()})", ha="center", fontsize=8, fontfamily="serif", color="grey")
-            plt.text(0, -1.85, "En tout cas, c'est ce que vous avez prédit ;)", ha="center", fontsize=8, fontfamily="serif", color="grey")
+            plt.text(0, -1.85, f"En tout cas, c'est ce que vous avez {presque}prédit ;)", ha="center", fontsize=8, fontfamily="serif", color="grey")
+
+            if sexe_oppose :
+                plt.text(0, 1.3, 'Version "sexe opposé"', ha='center', fontsize=8, fontfamily='serif', color=sex_color)
 
             st.pyplot(fig)
 
