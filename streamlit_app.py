@@ -15,6 +15,13 @@ from utils import *
 
 path_to_df = "processed_data.pkl"
 
+st.set_page_config(
+    page_title="Team Crevette", 
+    page_icon="✨", 
+    layout='centered', 
+    initial_sidebar_state='auto', 
+    menu_items=None)
+
 st.markdown("# ✨ Team Crevette ✨")
 st.write("~~")
 st.markdown("Bienvenue sur la page de visualisation de vos pronostics !")
@@ -32,8 +39,9 @@ with st.container():
     st.sidebar.markdown("# Fun place !")
     st.sidebar.markdown("## Les couleurs")
     st.sidebar.write("Cliquez sur la couleur à modifier, sélectionnez la nouvelle couleur, puis cliquez à côté pour valider.")
-    color_girl = st.sidebar.color_picker(label='Couleur "Fille"', value='#1FC3AA')
-    color_boy = st.sidebar.color_picker(label='Couleur "Garçon"', value='#ff8c00')
+    cols = st.sidebar.columns(3)
+    color_girl = cols[0].color_picker(label="Fille", value='#1FC3AA')
+    color_boy = cols[1].color_picker(label="Garçon", value='#ff8c00')
     st.sidebar.markdown("## Données")
     display = st.sidebar.radio("Visualisations à afficher", 
     (viz_prono, robot_baby))
@@ -58,7 +66,7 @@ with st.container():
                         legend=alt.Legend(title="", labelFontSize=12, orient="right"))
     base = alt.Chart(source).add_selection(selector).interactive()
 
-    zoom_possible = """##### ✨ Zoom et filtre garçon/fille possible, avec infobulles si vous êtes sur ordinateur. ✨  
+    zoom_possible = """ ✨ Zoom et filtre garçon/fille possible + infobulles si vous êtes sur ordinateur. ✨  
     """
 
 ## INTRO
@@ -71,7 +79,7 @@ with st.container():
     st.markdown("<small>Vous pouvez aussi changer les couleurs (ça ne sert à rien mais c'est rigolo).</small>", unsafe_allow_html=True)
     st.write("~~")
 
-    col1, col2 = st.columns(2)
+    col1, col0, col2 = st.columns((10,2,10))
 
     with col1:
 
@@ -87,10 +95,9 @@ with st.container():
             st.write("""&nbsp;  
             Pour rappel, la personne avec le plus de points* remportera le poids (réel!) du bébé
             en chocolats et/ou bonbons, selon sa préférence.  
-            &nbsp;&nbsp;🍬 &nbsp; 🍫 &nbsp; 🍭
-
-            * barême à suivre... 🧮     
+            &nbsp; &nbsp;🍬 &nbsp; 🍫 &nbsp; 🍭
             """)
+            st.write("🧮 *&nbsp;barême à suivre...")
             st.write("&nbsp;")
 
     ### SEXE // FAIRE PART
@@ -170,7 +177,7 @@ if display == viz_prono :
         st.markdown("## 📆 &nbsp; Date de naissance")
         st.markdown("&nbsp;")
         st.markdown(zoom_possible)
-        st.markdown("&nbsp;")
+
         st.markdown("🪧 Terme : **12 février 2022** (en gris clair).")
 
         ticks = base.mark_tick(thickness=2, size=80, opacity=0.5).encode(
