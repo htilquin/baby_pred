@@ -2,16 +2,16 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
+from babel.dates import format_datetime
+
 import matplotlib.pyplot as plt
 import altair as alt
 from textwrap import wrap
+
 from wordcloud import WordCloud
 from PIL import Image
 
 from utils import *
-
-import locale
-locale.setlocale(locale.LC_TIME,'')
 
 path_to_df = "processed_data.pkl"
 
@@ -46,7 +46,7 @@ with st.container():
     zoom_possible = """##### ✨ Zoom et filtre garçon/fille possible, avec infobulles si vous êtes sur ordinateur. ✨  
     """
 
-## INTRO + SEXE
+## INTRO
 with st.container():
     st.markdown("""Vous avez été **{}** personnes à participer.
     Si vous n'avez pas encore joué, il est toujours temps en [cliquant ici](https://form.jotform.com/bubbl3wrap/mini-mimi).        
@@ -106,8 +106,7 @@ with st.container():
 
             sexe_majo, birthday, taille, poids, chevelure, couleur, prenom_majo = portrait_robot(source)
             sex_color = colors_sex[sexes.index(sexe_majo)]
-            jour = f"{birthday.strftime('%A')} {birthday.day} {birthday.strftime('%B')} {birthday.year}"
-            heure = '{:d}h{:02d}'.format(birthday.hour, birthday.minute)
+            jour = format_datetime(birthday,"EEEE d MMMM yyyy 'à' H'h'mm ", locale='fr')
             fille = 'e' if sexe_majo == "Fille" else ''
             pronom = "elle" if sexe_majo == "Fille" else 'il'
             winning_color = couleurs_cheveux[ordre_couleur.index(couleur)]
@@ -125,16 +124,20 @@ with st.container():
 
             rect = plt.Rectangle(
                 # (left - lower corner), width, height
-                (0.2, -0.1), size+0.22, 1.05, fill=False, color=sex_color, lw=2, 
-                zorder=-100, transform=fig.transFigure, figure=fig
+                (0.2, -0.1), size+0.22, 1.05, fill=False, color=sex_color, lw=4, 
+                zorder=-100, transform=fig.transFigure, figure=fig,
+                linestyle='--',
+                #capstyle='round',
+                sketch_params=1.1
             )
             fig.patches.extend([rect])
 
             plt.text(0, 1.15, f"C'est un{fille} {sexe_majo} !".upper(), ha='center', fontsize=10, fontfamily="serif")
             plt.text(0, -1, f"~ {prenom_majo} ~".upper(), ha='center', fontsize=25, color=sex_color, fontfamily="serif")
-            plt.text(0, -1.3, f"Né{fille} le {jour} à {heure}".upper(), ha="center", fontweight="ultralight", fontfamily="serif")
+            plt.text(0, -1.3, f"Né{fille} le {jour}".upper(), ha="center", fontweight="ultralight", fontfamily="serif")
             plt.text(0, -1.5, f"{int(taille)} cm - {int(poids):1,} kg", ha="center", fontfamily="serif")
             plt.text(0, -1.75 , f"En plus, {pronom} a les cheveux {couleur.lower()} ({chevelure.lower()})", ha="center", fontsize=8, fontfamily="serif", color="grey")
+            plt.text(0, -1.85, "En tout cas, c'est ce que vous avez prédit ;)", ha="center", fontsize=8, fontfamily="serif", color="grey")
 
             st.pyplot(fig)
 
@@ -339,5 +342,5 @@ if display == viz_prono :
 
 # FOOTER
 st.write("### &nbsp;")
-st.markdown("##### Fait avec 💖 par Hélène.")
+st.markdown("**Fait avec 💖 par Hélène.**")
 

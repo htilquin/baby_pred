@@ -3,7 +3,6 @@ from wordcloud import get_single_color_func
 import streamlit as st
 
 def portrait_robot(data) :
-
     sexe_majo = data['sexe'].mode()[0]
 
     if sexe_majo == "Fille" :
