@@ -59,31 +59,35 @@ condition_color = alt.condition(selector, 'sexe:N',
 
 ## INTRO
 with st.container():
-    col1, col0, col2 = st.columns((10,2,10))
 
-    with col1:
-        if display == robot_baby :
-            st.markdown("&nbsp;")
-            st.markdown("**Et voici le tant attendu faire-part du bébé !!**")
-            st.write("Enfin, d'après vos pronostics, bien sûr...")
+    ### FAIRE-PART
+    if display == robot_baby :
 
-            with st.expander("Explications..."):
-                    st.markdown("""<small>Rempli avec les médianes pour la date de naissance, la taille et le poids du bébé, et le choix de la majorité pour la longueur et la couleur des cheveux.</small>
-                    \n<small>Le prénom est celui qui a été le plus donné pour le sexe majoritaire, par ceux qui ont prédit ce sexe.</small>
-                    \n<small>*Par exemple : s'il y a une majorité de "garçon", c'est le prénom masculin le plus donné par ceux qui ont prédit "garçon".*</small>
-                    """, unsafe_allow_html=True)
+        col1, col0, col2 = st.columns((10,2,10))
 
-## CAMEMBERT SEXE
-        else :
-            st.markdown("## ⚤ &nbsp; Sexe")
-            fig = sex_predictions(df['sexe'], sexes, colors_sex)
-            st.pyplot(fig)
+        with col1:
+                st.markdown("&nbsp;")
+                st.markdown("**Et voici le tant attendu faire-part du bébé !!**")
+                st.write("Enfin, d'après vos pronostics, bien sûr...")
 
-### FAIRE-PART
-    with col2 :
-        if display == robot_baby :
+                with st.expander("Explications..."):
+                        st.markdown("""<small>Rempli avec les médianes pour la date de naissance, la taille et le poids du bébé, et le choix de la majorité pour la longueur et la couleur des cheveux.</small>
+                        \n<small>Le prénom est celui qui a été le plus donné pour le sexe majoritaire, par ceux qui ont prédit ce sexe.</small>
+                        \n<small>*Par exemple : s'il y a une majorité de "garçon", c'est le prénom masculin le plus donné par ceux qui ont prédit "garçon".*</small>
+                        """, unsafe_allow_html=True)
+
+        with col2 :
             fig = birth_announcement(source, sexes, sexe_oppose, colors_sex, couleurs_cheveux, ordre_couleur)
             st.pyplot(fig)
+
+## CAMEMBERT SEXE
+    else :
+        st.markdown("&nbsp;")
+        col1, col0, col2 = st.columns((2,5,2))
+
+        col0.markdown("## ⚤ &nbsp; Sexe")
+        fig = sex_predictions(df['sexe'], sexes, colors_sex)
+        col0.pyplot(fig)
 
 
 if display == viz_prono :
@@ -104,9 +108,9 @@ if display == viz_prono :
         st.markdown('## 📏 &nbsp; Mensurations...')
         st.markdown("&nbsp;")
         st.markdown(zoom_possible)
-        st.markdown("&nbsp;")
 
-        st.markdown("En rouge foncé, Florian et en bleu, Hélène !")
+        st.markdown("Les mensurations à la naissance de Florian sont en rouge foncé, et en bleu, celles d'Hélène !")
+        st.markdown("&nbsp;")
 
         top_chart, points, right_chart = size_charts(base, condition_color, selector)
         st.altair_chart(top_chart & (points | right_chart), use_container_width=True)
@@ -154,5 +158,4 @@ if display == viz_prono :
 
 
 # FOOTER
-st.write("### &nbsp;")
-st.markdown("<small>**Fait avec 💖 par Hélène.**</small>", unsafe_allow_html=True)
+st.markdown(footer,unsafe_allow_html=True)

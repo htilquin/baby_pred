@@ -154,20 +154,20 @@ def size_charts(base, condition_color, selector):
     )
 
     points_F = alt.Chart(pd.DataFrame({
-        'Prénom': ['Florian'], 'Poids': [3290], 'Taille' : [50]
+        'Prénom': ['Florian'], 'Poids': [3290], 'Taille' : [50], 'sexe' : ['Garçon']
     })).mark_point(size=40, color='darkred').encode(
         alt.X('Taille', scale=taille_scale, title='Taille (cm)'),
         alt.Y('Poids', scale=poids_scale, title='Poids (g)'),
         tooltip=['Prénom', 'Poids', 'Taille']        
-    ).interactive()
+    ).interactive().transform_filter(selector)
 
     points_H = alt.Chart(pd.DataFrame({
-        'Prénom': ['Hélène'], 'Poids': [3170], 'Taille' : [48]
+        'Prénom': ['Hélène'], 'Poids': [3170], 'Taille' : [48], 'sexe' : ['Fille']
     })).mark_point(size=40, color='blue').encode(
         alt.X('Taille', scale=taille_scale, title='Taille (cm)'),
         alt.Y('Poids', scale=poids_scale, title='Poids (g)'),
         tooltip=['Prénom', 'Poids', 'Taille']        
-    ).interactive()
+    ).interactive().transform_filter(selector)
 
     points = alt.layer(points, points_H, points_F).interactive()
 
@@ -381,3 +381,32 @@ class GroupedColorFunc(object):
 
     def __call__(self, word, **kwargs):
         return self.get_color_func(word)(word, **kwargs)
+
+
+footer="""<style>
+a:link , a:visited{
+color: red;
+background-color: transparent;
+text-decoration: none;
+}
+
+a:hover,  a:active {
+color: red;
+background-color: transparent;
+text-decoration: underline;
+}
+
+.footer {
+position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
+background-color: white;
+color: gray;
+text-align: center;
+}
+</style>
+<div class="footer">
+<p>Made with 💖 by Hélène T.</p>
+</div>
+"""
