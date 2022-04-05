@@ -21,14 +21,14 @@ with st.container():
 
     st.markdown(f"# ✨ Team Crevette ✨") #J - {days} ! ✨
     st.write("~~")
-    st.markdown("""Bienvenue sur la page de visualisation de vos pronostics !
-    \nVous avez été **{}** personnes à participer.
-    {} étant là, il est bien entendu trop tard pour participer...        
-    """. format(len(df), dict_baby['prenom']))
+    st.markdown(f"""Bienvenue sur la page de visualisation de vos pronostics !
+    \nVous avez été **{len(df)}** personnes à participer.
+    {dict_baby['prenom']} étant là, il est bien entendu trop tard pour participer...        
+    """)
     st.markdown("Je me suis bien amusée à faire cette page, alors **merci à vous** ! 🤗")
-    st.write("""&nbsp;  
-    Pour rappel, les 5 personnes avec le plus de points se partageront le poids (réel!) du bébé
-    en chocolats et/ou bonbons (selon préférence).  
+    st.write(f"""&nbsp;  
+    Pour rappel, les 5 personnes avec le plus de points se partageront le poids de {dict_baby['prenom']}
+    en chocolats et/ou bonbons (selon préférence), soit {dict_baby['poids']} g !  
     &nbsp; &nbsp;🍬 &nbsp; 🍫 &nbsp; 🍭
     """)
     st.write("~~")
