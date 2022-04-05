@@ -326,12 +326,28 @@ with st.container():
             st.markdown("#### Faux pronostics")
             st.markdown("Réalisez de faux pronostics pour voir quel classement vous auriez pu avoir !")
 
-            with st.expander(f"""Par défaut, ce sont les valeurs de naissance de {dict_baby['prenom']} qui sont renseignées."""):
+            if participant_selected :
+                texte = f"""Par défaut, ce sont les valeurs de naissance de {serie_participant['Prénom']} {serie_participant['Nom']} qui sont renseignées."""
+                dict_default = {
+                    'birthday' : pd.to_datetime(serie_participant['Date de naissance']),
+                    'sexe' : serie_participant['Sexe'],
+                    'taille': int(serie_participant['Taille']),
+                    'poids' : int(serie_participant['Poids']),
+                    'longueur_cheveux' : serie_participant['Longueur des cheveux'],
+                    'couleur_cheveux' : serie_participant['Couleur des cheveux'],
+                    'color' : 'pink',
+                }
+                prenom_masc = serie_participant['Prénom masculin']
+                prenom_fem = serie_participant['Prénom féminin']
 
+            else :
+                texte = f"""Par défaut, ce sont les valeurs de naissance de {dict_baby['prenom']} qui sont renseignées.
+                Cherchez le score d'un participant (juste au-dessus) pour partir de ses pronostics !"""
                 dict_default = dict_baby.copy()
-
                 prenom_masc = dict_default['prenom'] if dict_default['sexe']== 'Garçon' else ""
                 prenom_fem = "" if dict_default['sexe']== 'Garçon' else dict_default['prenom']
+
+            with st.expander(texte):
 
                 dict_fake = {
                     'prenom' : 'Pourde',
