@@ -1,3 +1,4 @@
+from codecs import ignore_errors
 import streamlit as st
 from datetime import date
 from babel.dates import format_datetime
@@ -175,11 +176,11 @@ with st.container():
             {pronom} pesait alors {int(dict_baby['poids']):1,} kg pour {int(dict_baby['taille'])} cm,</center>""",
                 unsafe_allow_html=True) 
 
-            if dict_baby['chevelure'] == 'Pas de cheveux !':
-                st.markdown(f"<center>et {pronom} était chauve !</center>", unsafe_allow_html=True)
+            if dict_baby['longueur_cheveux'] == 'Pas de cheveux !':
+                st.markdown(f"<center>et {pronom} n'avait pas de cheuveux !</center>", unsafe_allow_html=True)
             else :
-                st.markdown(f"""<center>ses cheveux sont {dict_baby['couleur_cheveux'].lower()} 
-                ({dict_baby['chevelure'].lower()}).</center>""",
+                st.markdown(f"""<center>avec des cheveux {dict_baby['couleur_cheveux'].lower()} 
+                ({dict_baby['longueur_cheveux'].lower()}).</center>""",
                     unsafe_allow_html=True)
 
             st.markdown("&nbsp;")
@@ -214,10 +215,10 @@ with st.container():
                     'poids': st.number_input(
                         "Poids (g)", 2000, 5000, dict_baby['poids']
                     ),
-                    'chevelure': st.select_slider(
+                    'longueur_cheveux': st.select_slider(
                         "Chevelure",
                         dict_cheveux['ordre_cheveux'][::-1],
-                        dict_baby['chevelure']
+                        dict_baby['longueur_cheveux']
                     ),
                     'couleur_cheveux' : st.select_slider(
                         "Couleur des cheveux",
@@ -237,15 +238,40 @@ with st.container():
             st.markdown("&nbsp;")
             st.markdown("#### Classement des participants")
 
-            st.write("Triez selon une colonne en cliquant sur son titre.")
-            with st.expander("Chaque critère rapporte jusqu'à 1 point. Voir plus de détails..." ) :
-                st.markdown(f"**Sexe** : si bonne réponse ({dict_baby.sexe}), sinon 0 pt.")
-                st.markdown(f"**Date de naissance** : ")
-                st.markdown(f"**Poids** : ")
-                st.markdown(f"**Taille** : ")
-                st.markdown(f"**Cheveux** : ")
-                st.markdown(f"**Prénom** : ") 
+            with st.expander("""Chaque critère rapporte jusqu'à 1 point, avec une règle générale : 
+                plus on est loin, moins on n'a de points !
+                Voir plus de détails...""" ) :
+                st.markdown("""##### Le calcul des points""")
+                st.markdown("""Les formules ont été faites de façon à ce que tous les critères aient la même influence
+                sur le classement final. Ainsi, se planter complètement sur un critère n'est pas synonyme de mauvais classement ! 
+                L'accumulation des gros plantages par contre... 😄""")
+                
+                st.markdown(f"""**Exemple pour la taille** : """)
+                st.markdown("""Chaque cm de différence entre la taille prédite et la taille réelle fait perdre 0.15 point.""")
+                
+                st.markdown("**Le sexe**") 
+                st.markdown(f"""Pour la bonne réponse ({dict_baby['sexe'].lower()}), 
+                le score est égal au pourcentage de personnes ayant choisi la mauvaise réponse :
+                moins vous êtes nombreux à avoir la bonne réponse, plus ça vous fait de points !""")
+                st.markdown("0 pt pour la mauvaise réponse.")
 
+                st.markdown(f"""**Le cas des cheveux**""")
+                st.markdown(f"""Les propositions sont réparties entre 0 et 1 :""")
+                
+                fig = distance_hair_plot(dict_cheveux)
+                st.pyplot(fig)
+
+                st.markdown(f""" Le score pour chaque critère est alors de `1 - distance entre la prédiction et la réalité`. 
+                    Le score final pour les cheveux est la moyenne des deux scores.""")
+               
+                st.markdown(f"""**Le prénom**""") 
+                st.markdown(f"""Pour les deux prénoms proposés : le score est basé sur 
+                le nombre minimal de caractères qu'il faut supprimer, insérer 
+                ou remplacer pour passer du prénom proposé au prénom choisi par les parents.""")
+                st.markdown(f"""Pour le sexe non gagnant, le score est multiplié par `0.8`.
+                Le plus grand score parmi les deux est alors gardé.""")
+
+            st.write("Triez selon une colonne en cliquant sur son titre.")
             df_results = beautify_df(calculate_scores(df, dict_win))
             st.write(df_styler(df_results))
 
@@ -337,7 +363,7 @@ with st.container():
                     'longueur_cheveux': st.select_slider(
                         "Chevelure ",
                         dict_cheveux['ordre_cheveux'][::-1],
-                        dict_default['chevelure']
+                        dict_default['longueur_cheveux']
                     ),
                     'couleur_cheveux' : st.select_slider(
                         "Couleur des cheveux ",
@@ -348,28 +374,37 @@ with st.container():
 
 
             dict_fake['date'] = pd.Timestamp.combine(dict_fake['birthday_day'], dict_fake['birthday_time'])
-            df_fake = df.append(dict_fake, ignore_index=True)
-            len_df = len(df_fake)
 
-            fake_results = beautify_df(calculate_scores(df_fake, dict_win))
+            ## CHECKING IF FAKE PARTICIPANT IS A COPY OF ANOTHER LINE
+            copy_columns = ["sexe","date","poids","taille","longueur_cheveux",
+                "couleur_cheveux","prenom_masc","prenom_fem"]
 
-            df_fake_filter = fake_results.loc[fake_results['Prénom'] == dict_fake['prenom']]
+            dict_duplicates = { key : dict_fake[key] for key in copy_columns}
+            df_duplicates = df.loc[(df[copy_columns] == pd.Series(dict_duplicates)).all(axis=1)]
+
+            copying_someone = len(df_duplicates) > 0
+
+            if copying_someone :
+                df_fake = df.copy()
+
+            else :
+                df_fake = df.append(dict_fake, ignore_index=True)
+
+            fake_results = calculate_scores(df_fake, dict_win)
+            df_fake_filter = beautify_df(fake_results.loc[(fake_results[copy_columns] == pd.Series(dict_duplicates)).all(axis=1)])
             fake_participant = pd.Series(df_fake_filter.reset_index(level=0).iloc[0], dtype='str')
 
-            if participant_selected :
-                if fake_participant.drop(['Prénom', 'Nom', 'birthday_day', 'birthday_time', 'place']).equals(
-                    other=serie_participant.drop(['Prénom', 'Nom', 'place'])) :
-                    fake_participant = serie_participant.copy()
-                    len_df = len(df_fake)-1
-
-            scores_participant(fake_participant, len_df)
+            scores_participant(fake_participant, len(df_fake))
+            st.write('&nbsp;')
 
             classement = int(fake_participant['place'])
-            st.write('&nbsp;')
             if classement > 1 :
-                st.write(f"Score de la personne juste devant : {fake_results.iloc[classement-2]['Score total']} pts.")
-            if classement < len_df :
-                st.write(f"Score de la personne juste derrière : {fake_results.iloc[classement]['Score total']} pts.")
+                previous_one = fake_results.iloc[classement-2]
+                st.write(f"Score de la personne juste devant ({previous_one['prenom']} {previous_one['nom']}) : {previous_one['score']} pts.")
+
+            if classement < len(df_fake) :
+                next_one = fake_results.iloc[classement]
+                st.write(f"Score de la personne juste derrière ({next_one['prenom']} {next_one['nom']}): {next_one['score']} pts.")
             
 
 # FOOTER

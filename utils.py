@@ -15,7 +15,7 @@ from PIL import Image
 from Levenshtein import distance as levdist
 
 path_to_df = "processed_data.pkl"
-df = pd.read_pickle(path_to_df)
+df = pd.read_pickle(path_to_df).drop(columns=['jour'])
 df["date"] = pd.to_datetime(df["date"], dayfirst=True)
 
 viz_prono = "Pronostics"
@@ -26,7 +26,8 @@ sexes = ['Fille', 'Garçon']
 dict_cheveux = {'ordre_cheveux' : ['Maxi chevelure !', 'Chevelure classique', 'Juste assez pour ne pas être chauve...', 'Pas de cheveux !'],
 'ordre_couleur' : ['Noirs', 'Bruns', 'Roux', 'Blonds', 'Pas de cheveux... Pas de cheveux !'],
 'couleurs_cheveux' : ['black', 'saddlebrown', 'darkorange', 'gold', 'lightgray'],
-'longueur_cheveux' : [4, 2, 0.5, 0.1]
+'longueur_cheveux' : [4, 2, 0.5, 0.1],
+'dist_couleur' : {'Pas de cheveux... Pas de cheveux !': 0, 'Roux':0.25, 'Blonds' :0.3, 'Bruns':0.75, 'Noirs': 1}
 }
 
 dict_baby = {
@@ -35,7 +36,7 @@ dict_baby = {
     'sexe' : 'Garçon',
     'taille': 47,
     'poids' : 2565,
-    'chevelure' : 'Maxi chevelure !',
+    'longueur_cheveux' : 'Maxi chevelure !',
     'couleur_cheveux' : 'Noirs',
     'color' : 'indigo',
 }
@@ -45,7 +46,7 @@ dict_F = {
     'sexe' : 'Garçon',
     'taille': 50,
     'poids' : 3290,
-    'chevelure' : 'Maxi chevelure !',
+    'longueur_cheveux' : 'Maxi chevelure !',
     'couleur_cheveux' : 'Noirs',
     'color' : 'darkred'
 }
@@ -55,7 +56,7 @@ dict_H = {
     'sexe' : 'Fille',
     'taille': 48,
     'poids' : 3170,
-    'chevelure' : 'Maxi chevelure !',
+    'longueur_cheveux' : 'Maxi chevelure !',
     'couleur_cheveux' : 'Noirs',
     'color' : 'blue'
 }
@@ -85,7 +86,7 @@ def portrait_robot(data, sexe_oppose) :
         'sexe_oppose' : sexe_oppose,
         'taille': data.taille.median(),
         'poids' : data.poids.median(),
-        'chevelure' : data['longueur_cheveux'].mode()[0],
+        'longueur_cheveux' : data['longueur_cheveux'].mode()[0],
         'couleur_cheveux' : data['couleur_cheveux'].mode()[0],
     }
 
@@ -128,11 +129,11 @@ def display_birth_announcement(dict_baby, sexes, colors_gender, dict_cheveux):
     plt.text(0, -1.3, f"Né{fille} le {jour}".upper(), ha="center", fontweight="ultralight", fontfamily="serif")
     plt.text(0, -1.5, f"{int(dict_baby['taille'])} cm - {int(dict_baby['poids']):1,} kg", ha="center", fontfamily="serif")
 
-    if dict_baby['chevelure'] == 'Pas de cheveux !':
+    if dict_baby['longueur_cheveux'] == 'Pas de cheveux !':
         plt.text(0, -1.75 , f"En plus, {pronom} est chauve !", ha="center", fontsize=8, fontfamily="serif", color="grey")
     
     else:
-        plt.text(0, -1.75 , f"En plus, {pronom} a les cheveux {dict_baby['couleur_cheveux'].lower()} ({dict_baby['chevelure'].lower()})",
+        plt.text(0, -1.75 , f"En plus, {pronom} a les cheveux {dict_baby['couleur_cheveux'].lower()} ({dict_baby['longueur_cheveux'].lower()})",
          ha="center", fontsize=8, fontfamily="serif", color="grey")   
 
     ## Faux faire-part
@@ -352,6 +353,61 @@ def cool_hair_plot(df, dict_cheveux):
 
     return fig
 
+def distance_hair_plot(dict_cheveux) :
+    text = []
+    points = []
+
+    for longueur_cheveux in dict_cheveux['ordre_cheveux'] :
+        dist = dict_cheveux['ordre_cheveux'].index(longueur_cheveux)
+        pts = np.round(1-dist*1/3, 2)
+        text.append(f'{longueur_cheveux} : {pts}')
+        points.append(pts)
+        
+    for couleur in dict_cheveux['dist_couleur']:
+        dist = dict_cheveux['dist_couleur'][couleur]
+        text.append(f'{couleur} : {np.round(dist + 0/2, 2)}')
+        points.append(dist)
+
+    # Choose some nice levels
+    levels_chev = np.tile([-3,-1,-2],
+                    int(np.ceil(len(points)/3)))[:len(dict_cheveux['ordre_cheveux'])]    
+        
+        
+    levels_coul = np.tile([3, 2, 1],
+                    int(np.ceil(len(points)/3)))[:len(dict_cheveux['dist_couleur'])]
+
+    levels = np.append(levels_chev, levels_coul)
+
+    # Create figure and plot a stem plot
+    fig, ax = plt.subplots(figsize=(8.8, 4), constrained_layout=True)
+    ax.set(title="")
+
+    markerline, _, _ = ax.stem(
+        points, levels,
+        linefmt="C3-", basefmt="k-",
+        use_line_collection=True)
+
+    plt.setp(markerline, mec="k", mfc="w", zorder=3)
+
+    # Shift the markers to the baseline by replacing the y-data by zeros.
+    markerline.set_ydata(np.zeros(len(points)))
+
+    # annotate lines
+    vert = np.array(['top', 'bottom'])[(levels > 0).astype(int)]
+    for d, l, r, va in zip(points, levels, text, vert):
+        ax.annotate(r, xy=(d, l), xytext=(-3, np.sign(l)*3),
+                    textcoords="offset points", va=va, ha="left")
+
+    # remove y axis and spines
+    ax.get_yaxis().set_visible(False)
+    ax.get_xaxis().set_visible(False)
+    for spine in ["left", "top", "right", "bottom"]:
+        ax.spines[spine].set_visible(False)
+
+    ax.margins(y=0.1)
+
+    return fig
+
 def get_dict_from_freq(freq_masc, freq_fem):
     dict_masc = dict(freq_masc)
     dict_fem = dict(freq_fem)
@@ -480,13 +536,13 @@ class GroupedColorFunc(object):
 
 def set_hair_points(dict_baby, dict_cheveux):
 
-    index_chevelure = dict_cheveux['ordre_cheveux'].index(dict_baby['chevelure'])
+    index_longueur_cheveux = dict_cheveux['ordre_cheveux'].index(dict_baby['longueur_cheveux'])
     coeff_cheveux = {}
-    for chevelure in dict_cheveux['ordre_cheveux'] :
-        dist = abs(index_chevelure - dict_cheveux['ordre_cheveux'].index(chevelure))
-        coeff_cheveux[chevelure] = 1-dist*1/3
+    for longueur_cheveux in dict_cheveux['ordre_cheveux'] :
+        dist = abs(index_longueur_cheveux - dict_cheveux['ordre_cheveux'].index(longueur_cheveux))
+        coeff_cheveux[longueur_cheveux] = 1-dist*1/3
 
-    dist_couleur = {'Pas de cheveux... Pas de cheveux !': 0, 'Roux':0.25, 'Blonds' :0.3, 'Bruns':0.75, 'Noirs': 1}
+    dist_couleur = dict_cheveux['dist_couleur']
     coeff_couleur = {}
     for couleur in dict_cheveux['ordre_couleur'] :
         coeff_couleur[couleur] = 1 - (abs(dist_couleur[dict_baby['couleur_cheveux']]-dist_couleur[couleur]))
@@ -494,7 +550,7 @@ def set_hair_points(dict_baby, dict_cheveux):
     return  coeff_cheveux, coeff_couleur
 
 def calculate_scores(df_pred, dict_baby) :
-    df = df_pred.copy()
+    df = df_pred.drop(columns=['heure', 'birthday_day', 'birthday_time'], errors="ignore")
     df = df.replace(np.nan,'',regex=True)
     df.prenom_masc = df.prenom_masc.astype(str)
     df.prenom_fem = df.prenom_fem.astype(str)
@@ -544,8 +600,6 @@ def beautify_df(df) :
         'couleur_cheveux' : 'Couleur des cheveux',
         'prenom_masc' : 'Prénom masculin',
         'prenom_fem' : 'Prénom féminin',
-        'heure' : 'Heure',
-        'jour' : 'Jour',
         'score_date' : 'Score date',
         'score_sexe' : 'Score sexe',
         'score_prenom' : 'Score prenom',
@@ -559,7 +613,7 @@ def beautify_df(df) :
     df.rename(columns=mapper, inplace=True)
 
     cols = df.columns.tolist()
-    cols = [cols[0], cols[7], *cols[1:7] , *cols[8:10] , *cols[12:]]
+    cols = [cols[0], cols[7], *cols[1:7] , *cols[8:]]
 
     return df[cols]
 
@@ -589,7 +643,6 @@ def scores_participant(serie_participant, len_df) :
     col0, col1 = st.columns((2,1))
     with col0 :
         st.markdown(f"**Sexe** : {serie_participant['Sexe']}")
-        #fmt = "%-d %B à %-Hh%M"
         date_predite = format_datetime(datetime.strptime(serie_participant['Date de naissance'], '%Y-%m-%d %H:%M:%S'),"d MMMM yyyy 'à' H'h'mm ", locale='fr')
         st.markdown(f"**Date de naissance** : {date_predite}")
         st.markdown(f"**Poids** : {serie_participant['Poids']} g")
@@ -608,7 +661,7 @@ def scores_participant(serie_participant, len_df) :
         st.markdown(f"{serie_participant['Score cheveux']} pt")
         st.markdown(f"""{serie_participant['Score prenom']} pt""")
 
-    
+
 
 footer="""<style>
 a:link , a:visited{
