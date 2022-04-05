@@ -641,25 +641,30 @@ def scores_participant(serie_participant, len_df) :
     st.write('&nbsp;')
 
     col0, col1 = st.columns((2,1))
-    with col0 :
-        st.markdown(f"**Sexe** : {serie_participant['Sexe']}")
-        date_predite = format_datetime(datetime.strptime(serie_participant['Date de naissance'], '%Y-%m-%d %H:%M:%S'),"d MMMM yyyy 'à' H'h'mm ", locale='fr')
-        st.markdown(f"**Date de naissance** : {date_predite}")
-        st.markdown(f"**Poids** : {serie_participant['Poids']} g")
-        st.markdown(f"**Taille** : {serie_participant['Taille']} cm")
-        st.markdown(f"**Cheveux** : {serie_participant['Longueur des cheveux']} - {serie_participant['Couleur des cheveux']}")
-        double_prenom = True if len(serie_participant['Prénom masculin'])>1 and len(serie_participant['Prénom féminin'])>1 else False
-        st.markdown(f"""**Prénom{'s' if double_prenom else ''}** : {serie_participant['Prénom masculin']} 
-        {'&nbsp; & &nbsp;' if double_prenom else "&nbsp;"} 
-        {serie_participant['Prénom féminin']}""")
+    col0.markdown(f"**Sexe** : {serie_participant['Sexe']}")
+    col1.markdown(f"{serie_participant['Score sexe']} pt")
 
-    with col1 :
-        st.markdown(f"{serie_participant['Score sexe']} pt")
-        st.markdown(f"{serie_participant['Score date']} pt")
-        st.markdown(f"{serie_participant['Score poids']} pt")
-        st.markdown(f"{serie_participant['Score taille']} pt")
-        st.markdown(f"{serie_participant['Score cheveux']} pt")
-        st.markdown(f"""{serie_participant['Score prenom']} pt""")
+    col0, col1 = st.columns((2,1))    
+    date_predite = format_datetime(datetime.strptime(serie_participant['Date de naissance'], '%Y-%m-%d %H:%M:%S'),"d MMMM yyyy 'à' H'h'mm ", locale='fr')
+    col0.markdown(f"**Date de naissance** : {date_predite}")
+    col1.markdown(f"{serie_participant['Score date']} pt")
+    
+    col0, col1 = st.columns((2,1))
+    col0.markdown(f"**Poids** : {serie_participant['Poids']} g")
+    col1.markdown(f"{serie_participant['Score poids']} pt")
+
+    col0, col1 = st.columns((2,1))    
+    col0.markdown(f"**Taille** : {serie_participant['Taille']} cm")
+    col1.markdown(f"{serie_participant['Score taille']} pt")
+
+    col0, col1 = st.columns((2,1))
+    col0.markdown(f"**Cheveux** : {serie_participant['Couleur des cheveux']} - {serie_participant['Longueur des cheveux']}")
+    col1.markdown(f"{serie_participant['Score cheveux']} pt")
+    
+    col0, col1 = st.columns((2,1))
+    double_prenom = True if len(serie_participant['Prénom masculin'])>1 and len(serie_participant['Prénom féminin'])>1 else False
+    col0.markdown(f"""**Prénom{'s' if double_prenom else ''}** : {serie_participant['Prénom masculin']} {'&nbsp; & &nbsp;' if double_prenom else "&nbsp;"} {serie_participant['Prénom féminin']}""")
+    col1.markdown(f"""{serie_participant['Score prenom']} pt""")
 
 
 
