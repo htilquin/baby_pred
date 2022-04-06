@@ -327,7 +327,8 @@ with st.container():
             st.markdown("Réalisez de faux pronostics pour voir quel classement vous auriez pu avoir !")
 
             if participant_selected :
-                texte = f"""Par défaut, ce sont les valeurs de naissance de {serie_participant['Prénom']} {serie_participant['Nom']} qui sont renseignées."""
+                texte = f"""Par défaut, ce sont les pronostics de {serie_participant['Prénom']} {serie_participant['Nom']} 
+                qui sont renseignés."""
                 dict_default = {
                     'birthday' : pd.to_datetime(serie_participant['Date de naissance']),
                     'sexe' : serie_participant['Sexe'],
